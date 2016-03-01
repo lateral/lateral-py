@@ -94,14 +94,25 @@ class LatApi():
             params = {"keywords":keywords} if keywords else None)
         return r
 
+    def get_document(self, id):
+        r = requests.request('GET',
+            self.url('documents/{}'.format(id)),
+            headers = self.hdr())
+        return r
+
+    def delete_document(self, id):
+        r = requests.request('DELETE',
+            self.url('documents/{}'.format(id)),
+            headers = self.hdr())
+        return r
+
     ###########
     # Users
 
     def post_user(self):
         r = requests.request('POST',
-            self.url('cluster-models'),
-            headers = self.hdr(),
-            data = '{"number_clusters":%d}' % (size))
+            self.url('users'),
+            headers = self.hdr())
         return r
 
     def get_users(self):
