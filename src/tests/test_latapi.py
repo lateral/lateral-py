@@ -16,7 +16,7 @@ class LatApiTest(unittest.TestCase):
     @responses.activate
     def test_request(self):
         responses.add(responses.GET, 'http://test.io/2xx', status=299, body=self.X)
-        responses.add(responses.GET, 'http://test.io/666', status=666, body=self.X)
+        responses.add(responses.GET, 'http://test.io/666', status=666, body="")
         try:
             self.api._request('get', 'http://test.io/2xx')
             self.api._request('get', 'http://test.io/666')

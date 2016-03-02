@@ -24,11 +24,12 @@ class LatRequest():
         resp = m(self._url(endpoint), headers=self._hdr(), params=params, data=data)
         C = resp.status_code
         if C / 100 == 2 or self.ignore.count(C):
-            try:
-                j = resp.json()
-            except:
-                print("response.raw: {}".format(resp.raw))
-                raise ValueError("Response body is not valid json.")
+            if resp.text != "":
+                try:
+                    j = resp.json()
+                except:
+                    print("response.raw: {}".format(resp.raw))
+                    raise ValueError("Response body is neither empty nor valid json.")
             return resp     # success
         else:
             print resp.json()
