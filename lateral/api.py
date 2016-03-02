@@ -3,7 +3,7 @@
 import requests, json
 from urlparse import urljoin
 
-class LatRequest():
+class Request():
     """Basic requests to the Lateral API. Base class for higher level
     API wrapper classes"""
 
@@ -48,7 +48,7 @@ class LatRequest():
         return self._request('delete', endpoint, data=data)
 
 
-class LatApi(LatRequest):
+class Api(Request):
     """All Lateral API requests (but batch request"""
 
     ######################

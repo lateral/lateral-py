@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import requests, json, pandas as pd, collections
-import latapi
+import lateral.api
 
 CsvDef = collections.namedtuple('CsvDef', 'file textfield metafields')
 
-class LatApiLoader(latapi.LatApi):
+class ApiLoader(lateral.api.Api):
     """Adds convenience functions to LatApi.
     Batch requests load csv files and save wordcloud images."""
 
@@ -21,7 +21,7 @@ class LatApiLoader(latapi.LatApi):
                 'params': {'text': json.dumps(row[csvdef.textfield]),
                            'meta': json.dumps(
                                 self.create_meta(row, csvdef.metafields))},
-                'headers': self.hdr()
+                'headers': self._hdr()
             }
         ops = [opsdct(row) for row in rows]
         return ops
@@ -30,8 +30,8 @@ class LatApiLoader(latapi.LatApi):
         data = json.dumps({'ops': ops, 'sequential': 'true'})
         r = requests.request(
             'POST',
-            self.url('batch'),
-            headers=self.hdr(),
+            self._url('batch'),
+            headers=self._hdr(),
             data=data)
         return r
 
