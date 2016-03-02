@@ -16,17 +16,20 @@ class LatApiTest(unittest.TestCase):
     @responses.activate
     def test_request(self):
         responses.add(responses.GET, 'http://test.io/2xx', status=299, body=self.X)
-        responses.add(responses.GET, 'http://test.io/4xx', status=499, body=self.X)
         responses.add(responses.GET, 'http://test.io/666', status=666, body=self.X)
-
         try:
             self.api._request('get', 'http://test.io/2xx')
             self.api._request('get', 'http://test.io/666')
         except:
             self.fail("Function _request throws exception on legal input.")
 
+        responses.add(responses.GET, 'http://test.io/4xx', status=499, body=self.X)
         with self.assertRaises(requests.exceptions.HTTPError):
             self.api._request('get', 'http://test.io/4xx')
+
+        responses.add(responses.GET, 'http://test.io/200', status=200, body='"x": 3}')
+        with self.assertRaises(ValueError):
+            self.api._request('get', 'http://test.io/200')
 
     ######################
     # Documents

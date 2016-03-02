@@ -26,10 +26,17 @@ class LatRequest():
     def _request(self, method, endpoint, params=None, data={}):
         m = getattr(requests.api, method)
         resp = m(self._url(endpoint), headers=self._hdr(), params=params, data=data)
-        if resp.status_code / 100 == 2 or self.ignore.count(resp.status_code):
-            return resp
-        print resp.json()
-        resp.raise_for_status()
+        C = resp.status_code
+        if C / 100 == 2 or self.ignore.count(C):
+            try:
+                j = resp.json()
+            except:
+                print("response.raw: {}".format(resp.raw))
+                raise ValueError("Response body is not valid json.")
+            return resp     # success
+        else:
+            print resp.json()
+            resp.raise_for_status()
 
     def _get(self, endpoint, params={}):
         return self._request('get', endpoint, params=params)
