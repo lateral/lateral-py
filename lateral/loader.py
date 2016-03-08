@@ -18,7 +18,7 @@ class ApiLoader(lateral.api.Api):
         opsdct = lambda row: {
                 'method': 'POST',
                 'url': '/documents',
-                'params': {'text': json.dumps(row[csvdef.textfield]),
+                'params': {'text': row[csvdef.textfield],
                            'meta': json.dumps(
                                 self.create_meta(row, csvdef.metafields))},
                 'headers': self._hdr()
