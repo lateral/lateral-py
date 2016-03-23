@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Implements subclass of :py:class:`lateral.api.Api` to send data from a csv to the Lateral Api.
 """

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Implements class :py:class:`lateral.api.Request` and subclass :py:class:`lateral.api.Api` that wrap the Lateral Api.
 """
@@ -62,7 +60,7 @@ class Request():
 
 
 class Api(Request):
-    """All Lateral API requests (but batch request)"""
+    """All Lateral API requests (but batch request)."""
 
     ######################
     # Documents
