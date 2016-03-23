@@ -44,7 +44,11 @@ class Request():
             print resp.json()
             resp.raise_for_status()
 
-    def _get(self, endpoint, params={}):
+    def _get(self, endpoint, params={}, page=None, per_page=None):
+        if page is not None:
+            params['page'] = page
+        if per_page is not None:
+            params['per_page'] = per_page
         return self._request('get', endpoint, params=params)
 
     def _post(self, endpoint, data={}):
@@ -63,8 +67,10 @@ class Api(Request):
     ######################
     # Documents
 
-    def get_documents(self, keywords=None):
-        r = self._get('documents', {"keywords":keywords} if keywords else None)
+    def get_documents(self, keywords=None, page=None, per_page=None):
+        r = self._get('documents',
+            params={"keywords":keywords} if keywords is not None else {},
+            page=page, per_page=per_page)
         return r
 
     def post_document(self, text, meta={}):
@@ -88,8 +94,8 @@ class Api(Request):
     ######################
     # Users
 
-    def get_users(self):
-        r = self._get('users')
+    def get_users(self, page=None, per_page=None):
+        r = self._get('users', page=page, per_page=per_page)
         return r
 
     def post_user(self):
@@ -131,8 +137,8 @@ class Api(Request):
     ######################
     # Clusters
 
-    def get_cluster_models(self):
-        r = self._get('cluster-models')
+    def get_cluster_models(self, page=None, per_page=None):
+        r = self._get('cluster-models', page=page, per_page=per_page)
         return r
 
     def post_cluster_model(self, size):
