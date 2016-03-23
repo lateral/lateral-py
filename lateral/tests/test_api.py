@@ -66,6 +66,25 @@ class ApiTest(unittest.TestCase):
         responses.add(responses.DELETE, 'http://test.io/documents/docx', status=201, body=self.X)
         r = self.api.delete_document('docx')
 
+    @responses.activate
+    def test_get_documents_preferences(self):
+        responses.add(responses.GET, 'http://test.io/documents/docx/preferences', status=200, body=self.X)
+        r = self.api.get_documents_preferences('docx')
+
+        r = self.api.get_documents_preferences('docx', page=3, per_page=5)
+        assert responses.calls[1].request.url.find("page=3") > 0
+        assert responses.calls[1].request.url.find("per_page=5") > 0
+
+    @responses.activate
+    def test_get_documents_similar(self):
+        responses.add(responses.GET, 'http://test.io/documents/docx/similar', status=200, body=self.X)
+        r = self.api.get_documents_similar('docx')
+
+    @responses.activate
+    def test_post_documents_similar_to_text(self):
+        responses.add(responses.POST, 'http://test.io/documents/similar-to-text', status=200, body=self.X)
+        r = self.api.post_documents_similar_to_text('docx')
+
     ######################
     # Users
 
@@ -105,24 +124,24 @@ class ApiTest(unittest.TestCase):
     # Preferences
 
     @responses.activate
-    def test_get_preferences(self):
+    def test_get_users_preferences(self):
         responses.add(responses.GET, 'http://test.io/users/userx/preferences', status=200, body=self.X)
-        r = self.api.get_preferences('userx')
+        r = self.api.get_users_preferences('userx')
 
     @responses.activate
-    def test_get_preference(self):
+    def test_get_users_preference(self):
         responses.add(responses.GET, 'http://test.io/users/userx/preferences/docx', status=201, body=self.X)
-        r = self.api.get_preference('userx', 'docx')
+        r = self.api.get_users_preference('userx', 'docx')
 
     @responses.activate
-    def test_post_preference(self):
+    def test_post_users_preference(self):
         responses.add(responses.POST, 'http://test.io/users/userx/preferences/docx', status=201, body=self.X)
-        r = self.api.post_preference('userx', 'docx')
+        r = self.api.post_users_preference('userx', 'docx')
 
     @responses.activate
-    def test_delete_preference(self):
+    def test_delete_users_preference(self):
         responses.add(responses.DELETE, 'http://test.io/users/userx/preferences/docx', status=200, body=self.X)
-        r = self.api.delete_preference('userx', 'docx')
+        r = self.api.delete_users_preference('userx', 'docx')
 
     ######################
     # Clusters

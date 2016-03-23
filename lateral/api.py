@@ -91,6 +91,24 @@ class Api(Request):
         r = self._delete('documents/{}'.format(id))
         return r
 
+    def get_documents_preferences(self, document_id, page=None, per_page=None):
+        r = self._get('documents/{}/preferences'.format(document_id),
+            page=page, per_page=per_page)
+        return r
+
+    def get_documents_similar(self, document_id):
+        r = self._get('documents/{}/similar'.format(document_id))
+        return r
+
+    def post_documents_similar_to_text(self, text, select_from=None, number=None):
+        d = {"text": text}
+        if select_from is not None:
+            d['select_from'] = select_from
+        if number is not None:
+            d['number'] = number
+        r = self._post('documents/similar-to-text', json.dumps(d))
+        return r
+
     ######################
     # Users
 
@@ -118,19 +136,19 @@ class Api(Request):
     ######################
     # Preferences
 
-    def get_preferences(self, user_id):
+    def get_users_preferences(self, user_id):
         r = self._get('users/{}/preferences'.format(user_id))
         return r
 
-    def get_preference(self, user_id, document_id):
+    def get_users_preference(self, user_id, document_id):
         r = self._get('users/{}/preferences/{}'.format(user_id, document_id))
         return r
 
-    def post_preference(self, user_id, document_id):
+    def post_users_preference(self, user_id, document_id):
         r = self._post('users/{}/preferences/{}'.format(user_id, document_id))
         return r
 
-    def delete_preference(self, user_id, document_id):
+    def delete_users_preference(self, user_id, document_id):
         r = self._delete('users/{}/preferences/{}'.format(user_id, document_id))
         return r
 
