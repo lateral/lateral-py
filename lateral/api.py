@@ -1,13 +1,22 @@
 #!/usr/bin/env python
 
+"""
+Implements class :py:class:`lateral.api.Request` and subclass :py:class:`lateral.api.Api` that wrap the Lateral Api.
+"""
+
 import requests, json
 from urlparse import urljoin
 
 class Request():
     """Basic requests to the Lateral API. Base class for higher level
-    API wrapper classes"""
+    API wrapper classes."""
 
     def __init__(self, key, url="http://api.lateral.io", ignore=[406]):
+        """
+        :param key: subscription key
+        :param url: url of lateral instance
+        :param ignore: list of integers representing status_codes that are not considered an error (default [406])
+        """
         self.url_base = url
         self.key = key
         self.ignore = ignore
@@ -49,7 +58,7 @@ class Request():
 
 
 class Api(Request):
-    """All Lateral API requests (but batch request"""
+    """All Lateral API requests (but batch request)"""
 
     ######################
     # Documents

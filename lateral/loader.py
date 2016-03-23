@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
+"""
+Implements subclass of :py:class:`lateral.api.Api` to send data from a csv to the Lateral Api.
+"""
 import requests, json, pandas as pd, collections
 import lateral.api
 
 CsvDef = collections.namedtuple('CsvDef', 'file textfield metafields')
 
 class ApiLoader(lateral.api.Api):
-    """Adds convenience functions to LatApi.
-    Batch requests load csv files and save wordcloud images."""
+    """Adds convenience functions to :py:class:`lateral.Api`."""
 
     def create_meta(self, row, metafields):
         meta = dict([(dst, row[src]) for src, dst in metafields.iteritems()])
@@ -39,6 +41,13 @@ class ApiLoader(lateral.api.Api):
         return pd.read_csv(csvdef.file, chunksize=chunksize, na_filter=False)
 
     def ingest(self, csvdef, batchsize=100, total=-1):
+        """Do batch requests to load csv file. The pandas csv reader is used.
+        Be sure your csv is appropriate.
+        :param csvdef: namedtuple with filename, name of column with text content,
+        dictionary that maps column names in csv to meta field names
+        :param batchsize: size of batches (note that 100 is maximum)
+        :param total: number of entries to take from csv
+        """
         success_cnt = 0
         for i, df in enumerate(self.get_df(csvdef, batchsize)):
             ops = self.create_batch_request_data(df, csvdef)
@@ -61,6 +70,10 @@ class ApiLoader(lateral.api.Api):
                 break
 
     def save_wordclouds(self, cluster_model_id, file_prefix):
+        """Download wordcloud images.
+        :param cluster_model_id: cluster model id
+        :param file_prefix: images are stored to files `file_prefixN.png` for cluster N
+        """
         clusters = json.loads(
             self.get_clusters_collection(cluster_model_id).content)
         for c in clusters:
