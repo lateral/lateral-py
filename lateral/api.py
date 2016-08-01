@@ -58,6 +58,13 @@ class Request():
     def _delete(self, endpoint, data={}):
         return self._request('delete', endpoint, data=data)
 
+def append_id(endpoint, _id):
+    """
+    append '_id' to endpoint if provided
+    """
+    if _id is not None:
+        return '/'.join([endpoint.rstrip('/'), _id])
+    return endpoint
 
 class Api(Request):
     """All Lateral API requests (but batch request)."""
@@ -71,8 +78,8 @@ class Api(Request):
             page=page, per_page=per_page)
         return r
 
-    def post_document(self, text, meta={}):
-        r = self._post('documents',
+    def post_document(self, text, meta={}, document_id=None):
+        r = self._post(append_id('documents', document_id),
             json.dumps({"text": text, "meta": json.dumps(meta)}))
         return r
 
@@ -89,6 +96,11 @@ class Api(Request):
         r = self._delete('documents/{}'.format(id))
         return r
 
+    def get_documents_tags(self, document_id, page=None, per_page=None):
+        r = self._get('documents/{}/tags'.format(document_id),
+            page=page, per_page=per_page)
+        return r
+
     def get_documents_preferences(self, document_id, page=None, per_page=None):
         r = self._get('documents/{}/preferences'.format(document_id),
             page=page, per_page=per_page)
@@ -98,13 +110,58 @@ class Api(Request):
         r = self._get('documents/{}/similar'.format(document_id))
         return r
 
-    def post_documents_similar_to_text(self, text, select_from=None, number=None):
+    def post_documents_similar_to_text(self, text,
+            expand_meta=None, number=None, select_from=None):
         d = {"text": text}
-        if select_from is not None:
-            d['select_from'] = select_from
+        if expand_meta is not None:
+            d['expand_meta'] = expand_meta
         if number is not None:
             d['number'] = number
+        if select_from is not None:
+            d['select_from'] = select_from
         r = self._post('documents/similar-to-text', json.dumps(d))
+        return r
+
+    def post_documents_popular(self,
+            expand_meta=None, number=None, select_from=None):
+        d = {}
+        if expand_meta is not None:
+            d['expand_meta'] = expand_meta
+        if number is not None:
+            d['number'] = number
+        if select_from is not None:
+            d['select_from'] = select_from
+        r = self._post('documents/popular', json.dumps(d))
+        return r
+
+    ######################
+    # Tags
+
+    def get_tags(self):
+        r = self._get('tags')
+        return r
+
+    def post_tag(self, tag_id):
+        r = self._post('tags/{}'.format(tag_id))
+        return r
+
+    def get_tag(self, tag_id):
+        r = self._get('tags/{}'.format(tag_id))
+        return r
+
+    def delete_tag(self, tag_id):
+        r = self._delete('tags/{}'.format(tag_id))
+        return r
+
+    ######################
+    # Taggings
+
+    def post_documents_tagging(self, document_id, tag_id):
+        r = self._post('documents/{}/tags/{}'.format(document_id, tag_id))
+        return r
+
+    def delete_documents_tagging(self, document_id, tag_id):
+        r = self._delete('documents/{}/tags/{}'.format(document_id, tag_id))
         return r
 
     ######################
@@ -114,8 +171,8 @@ class Api(Request):
         r = self._get('users', page=page, per_page=per_page)
         return r
 
-    def post_user(self):
-        r = self._post('users')
+    def post_user(self, user_id=None):
+        r = self._post(append_id('users', user_id))
         return r
 
     def get_user(self, id):
@@ -158,7 +215,7 @@ class Api(Request):
         return r
 
     def post_cluster_model(self, size):
-        r = self._post('cluster-models', data = '{"number_clusters":%d}'%(size))
+        r = self._post('cluster-models', data='{"number_clusters":%d}'%(size))
         return r
 
     def get_cluster_model(self, id):
@@ -194,4 +251,3 @@ class Api(Request):
     def delete_all_data(self):
         r = self._delete('delete-all-data')
         return r
-
