@@ -2,6 +2,7 @@
 Implements class :py:class:`lateral.api.Request` and subclass :py:class:`lateral.api.Api` that wrap the Lateral Api.
 """
 
+from sys import stdout
 import requests, json
 from urlparse import urljoin
 
@@ -9,7 +10,7 @@ class Request():
     """Basic requests to the Lateral API. Base class for higher level
     API wrapper classes."""
 
-    def __init__(self, key, url="http://api.lateral.io", ignore=[406]):
+    def __init__(self, key, url="http://api.lateral.io", ignore=[406], verbose=False):
         """
         :param key: subscription key
         :param url: url of lateral instance
@@ -18,6 +19,8 @@ class Request():
         self.url_base = url
         self.key = key
         self.ignore = ignore
+        self.verbose = verbose
+        self.counter = 0
 
     def _url(self, endpoint):
         return urljoin(self.url_base, endpoint)
@@ -27,8 +30,13 @@ class Request():
                 'subscription-key': self.key}
 
     def _request(self, method, endpoint, params=None, data={}):
+        self.counter += 1
         m = getattr(requests.api, method)
         resp = m(self._url(endpoint), headers=self._hdr(), params=params, data=data)
+        if self.verbose:
+            stdout.write("{0:8} {1:20} invoked ({2})\r".format(
+                method, endpoint, self.counter))
+            stdout.flush()
         C = resp.status_code
         if C / 100 == 2 or self.ignore.count(C):
             if resp.text != "":
@@ -39,7 +47,7 @@ class Request():
                     raise ValueError("Response body is neither empty nor valid json.")
             return resp     # success
         else:
-            print resp.json()
+            print(resp.json())
             resp.raise_for_status()
 
     def _get(self, endpoint, params={}, page=None, per_page=None):
