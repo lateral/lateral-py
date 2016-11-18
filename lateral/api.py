@@ -10,7 +10,7 @@ class Request():
     """Basic requests to the Lateral API. Base class for higher level
     API wrapper classes."""
 
-    def __init__(self, key, url="http://api.lateral.io", ignore=[406], verbose=False):
+    def __init__(self, key, url="http://api-v4.lateral.io", ignore=[406], verbose=False):
         """
         :param key: subscription key
         :param url: url of lateral instance
