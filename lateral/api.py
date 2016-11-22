@@ -1,16 +1,15 @@
 """
-Implements class :py:class:`lateral.api.Request` and subclass :py:class:`lateral.api.Api` that wrap the Lateral Api.
+Implements class :py:class:`lateral.api.Request` and subclass :py:class:`lateral.api.API` that wrap the Lateral API.
 """
 
-from sys import stdout
-import requests, json
+import requests, ujson
 from urlparse import urljoin
 
 class Request():
     """Basic requests to the Lateral API. Base class for higher level
     API wrapper classes."""
 
-    def __init__(self, key, url="http://api-v4.lateral.io", ignore=[406], verbose=False):
+    def __init__(self, key, url="http://api-v4.lateral.io", ignore=[406]):
         """
         :param key: subscription key
         :param url: url of lateral instance
@@ -19,7 +18,6 @@ class Request():
         self.url_base = url
         self.key = key
         self.ignore = ignore
-        self.verbose = verbose
         self.counter = 0
 
     def _url(self, endpoint):
@@ -33,28 +31,13 @@ class Request():
         self.counter += 1
         m = getattr(requests.api, method)
         resp = m(self._url(endpoint), headers=self._hdr(), params=params, data=data)
-        if self.verbose:
-            stdout.write("{0:8} {1:20} invoked ({2})\r".format(
-                method, endpoint, self.counter))
-            stdout.flush()
         C = resp.status_code
         if C / 100 == 2 or self.ignore.count(C):
-            if resp.text != "":
-                try:
-                    j = resp.json()
-                except:
-                    print("response.raw: {}".format(resp.raw))
-                    raise ValueError("Response body is neither empty nor valid json.")
-            return resp     # success
+            return ujson.loads(resp.content)     # success
         else:
-            print(resp.json())
             resp.raise_for_status()
 
-    def _get(self, endpoint, params={}, page=None, per_page=None):
-        if page is not None:
-            params['page'] = page
-        if per_page is not None:
-            params['per_page'] = per_page
+    def _get(self, endpoint, **params):
         return self._request('get', endpoint, params=params)
 
     def _post(self, endpoint, data={}):
@@ -74,21 +57,19 @@ def append_id(endpoint, _id):
         return '/'.join([endpoint.rstrip('/'), _id])
     return endpoint
 
-class Api(Request):
+class API(Request):
     """All Lateral API requests (but batch request)."""
 
     ######################
     # Documents
 
-    def get_documents(self, keywords=None, page=None, per_page=None):
-        r = self._get('documents',
-            params={"keywords":keywords} if keywords is not None else {},
-            page=page, per_page=per_page)
+    def get_documents(self, **params):
+        r = self._get('documents', **params)
         return r
 
     def post_document(self, text, meta={}, document_id=None):
         r = self._post(append_id('documents', document_id),
-            json.dumps({"text": text, "meta": json.dumps(meta)}))
+            ujson.dumps({"text": text, "meta": ujson.dumps(meta)}))
         return r
 
     def get_document(self, id):
@@ -97,49 +78,32 @@ class Api(Request):
 
     def put_document(self, id, text, meta={}):
         r = self._put('documents/{}'.format(id),
-            json.dumps({"text": text, "meta": json.dumps(meta)}))
+            ujson.dumps({"text": text, "meta": ujson.dumps(meta)}))
         return r
 
     def delete_document(self, id):
         r = self._delete('documents/{}'.format(id))
         return r
 
-    def get_documents_tags(self, document_id, page=None, per_page=None):
-        r = self._get('documents/{}/tags'.format(document_id),
-            page=page, per_page=per_page)
+    def get_documents_tags(self, document_id, **params):
+        r = self._get('documents/{}/tags'.format(document_id), **params)
         return r
 
-    def get_documents_preferences(self, document_id, page=None, per_page=None):
-        r = self._get('documents/{}/preferences'.format(document_id),
-            page=page, per_page=per_page)
+    def get_documents_preferences(self, document_id, **params):
+        r = self._get('documents/{}/preferences'.format(document_id), **params)
         return r
 
-    def get_documents_similar(self, document_id):
-        r = self._get('documents/{}/similar'.format(document_id))
+    def get_documents_similar(self, document_id, **params):
+        r = self._get('documents/{}/similar'.format(document_id), **params)
         return r
 
-    def post_documents_similar_to_text(self, text,
-            expand_meta=None, number=None, select_from=None):
-        d = {"text": text}
-        if expand_meta is not None:
-            d['expand_meta'] = expand_meta
-        if number is not None:
-            d['number'] = number
-        if select_from is not None:
-            d['select_from'] = select_from
-        r = self._post('documents/similar-to-text', json.dumps(d))
+    def post_documents_similar_to_text(self, text, **params):
+        params['text'] = text
+        r = self._post('documents/similar-to-text', ujson.dumps(p))
         return r
 
-    def post_documents_popular(self,
-            expand_meta=None, number=None, select_from=None):
-        d = {}
-        if expand_meta is not None:
-            d['expand_meta'] = expand_meta
-        if number is not None:
-            d['number'] = number
-        if select_from is not None:
-            d['select_from'] = select_from
-        r = self._post('documents/popular', json.dumps(d))
+    def post_documents_popular(self, **params):
+        r = self._post('documents/popular', ujson.dumps(params))
         return r
 
     ######################
@@ -164,6 +128,10 @@ class Api(Request):
     ######################
     # Taggings
 
+    def get_tags_documents(self, tag_id, **params):
+        r = self._get('tags/{}/documents'.format(tag_id), **params)
+        return r
+
     def post_documents_tagging(self, document_id, tag_id):
         r = self._post('documents/{}/tags/{}'.format(document_id, tag_id))
         return r
@@ -175,8 +143,8 @@ class Api(Request):
     ######################
     # Users
 
-    def get_users(self, page=None, per_page=None):
-        r = self._get('users', page=page, per_page=per_page)
+    def get_users(self, **params):
+        r = self._get('users', **params)
         return r
 
     def post_user(self, user_id=None):
@@ -191,9 +159,8 @@ class Api(Request):
         r = self._delete('users/{}'.format(id))
         return r
 
-    def get_user_recommendations(self, user_id, number, select_from=None):
-        r = self._get('users/{}/recommendations'.format(user_id),
-            params=json.dumps({"number": number, "select_from": select_from}))
+    def get_user_recommendations(self, user_id, **params):
+        r = self._get('users/{}/recommendations'.format(user_id), params=ujson.dumps(params))
         return r
 
     ######################
@@ -218,20 +185,20 @@ class Api(Request):
     ######################
     # Clusters
 
-    def get_cluster_models(self, page=None, per_page=None):
-        r = self._get('cluster-models', page=page, per_page=per_page)
+    def get_cluster_models(self, **params):
+        r = self._get('cluster-models', **params)
         return r
 
     def post_cluster_model(self, size):
         r = self._post('cluster-models', data='{"number_clusters":%d}'%(size))
         return r
 
-    def get_cluster_model(self, id):
-        r = self._get('cluster-models/{}'.format(id))
+    def get_cluster_model(self, cluster_model_id):
+        r = self._get('cluster-models/{}'.format(cluster_model_id))
         return r
 
-    def delete_cluster_model(self, id):
-        r = self._delete('cluster-models/{}'.format(id))
+    def delete_cluster_model(self, cluster_model_id):
+        r = self._delete('cluster-models/{}'.format(cluster_model_id))
         return r
 
     def get_clusters(self, cluster_model_id):
