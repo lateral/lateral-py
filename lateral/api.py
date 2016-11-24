@@ -1,9 +1,12 @@
 """
-Implements class :py:class:`lateral.api.Request` and subclass :py:class:`lateral.api.API` that wrap the Lateral API.
+Implements class :py:class:`lateral.api.Request` and subclass
+:py:class:`lateral.api.API` that wrap the Lateral API.
 """
 
-import requests, ujson
+import requests
+import ujson
 from urlparse import urljoin
+
 
 class Request():
     """Basic requests to the Lateral API. Base class for higher level
@@ -13,7 +16,8 @@ class Request():
         """
         :param key: subscription key
         :param url: url of lateral instance
-        :param ignore: list of integers representing status_codes that are not considered an error (default [406])
+        :param ignore: list of integers representing status_codes that are not
+        considered an error (default [406])
         """
         self.url_base = url
         self.key = key
@@ -30,7 +34,8 @@ class Request():
     def _request(self, method, endpoint, params=None, data={}):
         self.counter += 1
         m = getattr(requests.api, method)
-        resp = m(self._url(endpoint), headers=self._hdr(), params=params, data=data)
+        resp = m(self._url(endpoint), headers=self._hdr(), params=params,
+                 data=data)
         C = resp.status_code
         if C / 100 == 2 or self.ignore.count(C):
             return ujson.loads(resp.content)     # success
@@ -49,6 +54,7 @@ class Request():
     def _delete(self, endpoint, data={}):
         return self._request('delete', endpoint, data=data)
 
+
 def append_id(endpoint, _id):
     """
     append '_id' to endpoint if provided
@@ -56,6 +62,7 @@ def append_id(endpoint, _id):
     if _id is not None:
         return '/'.join([endpoint.rstrip('/'), _id])
     return endpoint
+
 
 class API(Request):
     """All Lateral API requests (but batch request)."""
@@ -69,20 +76,20 @@ class API(Request):
 
     def post_document(self, text, meta={}, document_id=None):
         r = self._post(append_id('documents', document_id),
-            ujson.dumps({"text": text, "meta": ujson.dumps(meta)}))
+                       ujson.dumps({"text": text, "meta": ujson.dumps(meta)}))
         return r
 
-    def get_document(self, id):
-        r = self._get('documents/{}'.format(id))
+    def get_document(self, document_id):
+        r = self._get('documents/{}'.format(document_id))
         return r
 
-    def put_document(self, id, text, meta={}):
-        r = self._put('documents/{}'.format(id),
-            ujson.dumps({"text": text, "meta": ujson.dumps(meta)}))
+    def put_document(self, document_id, text, meta={}):
+        r = self._put('documents/{}'.format(document_id),
+                      ujson.dumps({"text": text, "meta": ujson.dumps(meta)}))
         return r
 
-    def delete_document(self, id):
-        r = self._delete('documents/{}'.format(id))
+    def delete_document(self, document_id):
+        r = self._delete('documents/{}'.format(document_id))
         return r
 
     def get_documents_tags(self, document_id, **params):
@@ -99,7 +106,7 @@ class API(Request):
 
     def post_documents_similar_to_text(self, text, **params):
         params['text'] = text
-        r = self._post('documents/similar-to-text', ujson.dumps(p))
+        r = self._post('documents/similar-to-text', ujson.dumps(params))
         return r
 
     def post_documents_popular(self, **params):
@@ -160,7 +167,8 @@ class API(Request):
         return r
 
     def get_user_recommendations(self, user_id, **params):
-        r = self._get('users/{}/recommendations'.format(user_id), params=ujson.dumps(params))
+        r = self._get('users/{}/recommendations'.format(user_id),
+                      params=ujson.dumps(params))
         return r
 
     ######################
@@ -190,7 +198,7 @@ class API(Request):
         return r
 
     def post_cluster_model(self, size):
-        r = self._post('cluster-models', data='{"number_clusters":%d}'%(size))
+        r = self._post('cluster-models', data='{"number_clusters":%d}' % (size))
         return r
 
     def get_cluster_model(self, cluster_model_id):
