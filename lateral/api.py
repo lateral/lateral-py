@@ -1,6 +1,10 @@
 """
 Implements class :py:class:`lateral.api.Request` and subclass
 :py:class:`lateral.api.API` that wrap the Lateral API.
+
+NOTE we chose to return requests.Response objects rather than the decoded JSON
+since the pagination information is only made available in the response
+headers.
 """
 
 import requests
@@ -38,7 +42,7 @@ class Request():
                  data=data)
         C = resp.status_code
         if C / 100 == 2 or self.ignore.count(C):
-            return ujson.loads(resp.content)     # success
+            return resp     # success
         else:
             resp.raise_for_status()
 
