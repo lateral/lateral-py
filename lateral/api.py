@@ -10,13 +10,16 @@ headers.
 import requests
 import ujson
 from urlparse import urljoin
+from collections import namedtuple
+
+BatchOp = namedtuple('BatchOp', 'method url params')
 
 
 class Request():
     """Basic requests to the Lateral API. Base class for higher level
     API wrapper classes."""
 
-    def __init__(self, key, url="http://api-v4.lateral.io", ignore=[406]):
+    def __init__(self, key, url="http://api-v4.lateral.io", ignore=[], raise_errors=True):
         """
         :param key: subscription key
         :param url: url of lateral instance
@@ -27,6 +30,7 @@ class Request():
         self.key = key
         self.ignore = ignore
         self.counter = 0
+        self.raise_errors = raise_errors
 
     def _url(self, endpoint):
         return urljoin(self.url_base, endpoint)
@@ -40,11 +44,12 @@ class Request():
         m = getattr(requests.api, method)
         resp = m(self._url(endpoint), headers=self._hdr(), params=params,
                  data=data)
+        if not self.raise_errors:
+            return resp
         C = resp.status_code
-        if C / 100 == 2 or self.ignore.count(C):
-            return resp     # success
-        else:
+        if not self.ignore.count(C):
             resp.raise_for_status()
+        return resp     # success
 
     def _get(self, endpoint, **params):
         return self._request('get', endpoint, params=params)
@@ -69,7 +74,26 @@ def append_id(endpoint, _id):
 
 
 class API(Request):
-    """All Lateral API requests (but batch request)."""
+    """Lateral API requests."""
+
+    def batch(self, ops):
+        """
+        `ops`: list of operations of type `BatchOp`
+        """
+        opsdct = lambda op: {
+            'method': op.method,
+            'url': op.url,
+            'params': op.params,
+            'headers': self._hdr()
+        }
+        data = ujson.dumps(
+            {'ops': [opsdct(op) for op in ops], 'sequential': 'true'})
+        self._post('batch', data)
+        return requests.request(
+            'POST',
+            self._url('batch'),
+            headers=self._hdr(),
+            data=data)
 
     ######################
     # Documents
