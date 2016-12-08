@@ -7,7 +7,7 @@ Python client library for using the Lateral API.
 ## Installation
 
 ```bash
-git clone https://github.com/lateral/lateral.py.git
+git clone https://github.com/lateral/lateral-py.git
 pip install requests responses
 pip install -e ./
 ```
