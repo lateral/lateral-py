@@ -144,8 +144,8 @@ class API(Request):
     ######################
     # Tags
 
-    def get_tags(self):
-        r = self._get('tags')
+    def get_tags(self, **params):
+        r = self._get('tags', **params)
         return r
 
     def post_tag(self, tag_id):
@@ -202,8 +202,8 @@ class API(Request):
     ######################
     # Preferences
 
-    def get_users_preferences(self, user_id):
-        r = self._get('users/{}/preferences'.format(user_id))
+    def get_users_preferences(self, user_id, **params):
+        r = self._get('users/{}/preferences'.format(user_id), **params)
         return r
 
     def get_users_preference(self, user_id, document_id):

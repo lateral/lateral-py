@@ -1,11 +1,11 @@
 import requests, responses, unittest, json
 import lateral.api
 
-class ApiTest(unittest.TestCase):
+class APITest(unittest.TestCase):
 
     def setUp(self):
         self.url = "http://test.io"
-        self.api = lateral.api.Api("009b64acf288f20816ecfbbd20000000",
+        self.api = lateral.api.API("009b64acf288f20816ecfbbd20000000",
             url=self.url, ignore=[666])
         self.jsonX = {"id": 1}
         self.X = json.dumps(self.jsonX)
