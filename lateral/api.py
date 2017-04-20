@@ -9,7 +9,7 @@ headers.
 
 import requests
 import ujson
-from urlparse import urljoin
+from urllib.parse import urljoin
 from collections import namedtuple
 
 BatchOp = namedtuple('BatchOp', 'method url params')
